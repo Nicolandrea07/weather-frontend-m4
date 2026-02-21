@@ -1,7 +1,8 @@
-// 1. Renderizado inicial de tarjetas (Requisito 3 del PDF)
+// Renderizado inicial de tarjetas (Requisito 3 del PDF)
 const contenedor = document.getElementById("contenedor-lugares");
 
 function renderizarHome() {
+    if (!contenedor) return;
     contenedor.innerHTML = "";
     lugares.forEach(lugar => {
         contenedor.innerHTML += `
@@ -12,7 +13,7 @@ function renderizarHome() {
                         <p class="card-text display-6 my-3">${lugar.tempActual}°C</p>
                         <p class="badge bg-primary rounded-pill mb-3">${lugar.estadoActual}</p>
                         <br>
-                        <button class="btn btn-dark w-100" onclick="verDetalle(${lugar.id})">Ver Pronóstico Semanal</button>
+                        <button class="btn btn-dark w-100" onclick="verDetalle(${lugar.id})">Ver Detalles</button>
                     </div>
                 </div>
             </div>
@@ -20,24 +21,21 @@ function renderizarHome() {
     });
 }
 
-// 2. Función de cálculo de estadísticas (Requisito 4 y Rúbrica del PDF)
+// Función de cálculo (Requisito 4 y Rúbrica del PDF)
 function calcularStats(pronostico) {
     let minS = pronostico[0].min;
     let maxS = pronostico[0].max;
-    let sumaTemps = 0; // Requisito técnico 164 del PDF
+    let sumaTemps = 0; // Requisito 164 del PDF
     
-    // Objeto para conteo de climas (Requisito de la Rúbrica)
+    // Conteo por tipo de clima (Requisito de la Rúbrica)
     let conteoClima = { "Soleado": 0, "Nublado": 0, "Lluvioso": 0 };
 
-    for (let dia de pronostico) {
-        // Mínima y Máxima
+    for (let dia of pronostico) {
         if (dia.min < minS) minS = dia.min;
         if (dia.max > maxS) maxS = dia.max;
         
-        // Suma para promedio
         sumaTemps += (dia.min + dia.max) / 2;
         
-        // Conteo incremental
         if (conteoClima[dia.estado] !== undefined) {
             conteoClima[dia.estado]++;
         }
@@ -45,23 +43,17 @@ function calcularStats(pronostico) {
 
     const promedio = (sumaTemps / pronostico.length).toFixed(1);
     
-    // Resumen basado en condicionales (Requisito 4.4 del PDF)
-    let resumen = "";
-    if (conteoClima["Soleado"] >= 4) {
-        resumen = "Semana con excelentes condiciones, mayormente despejada.";
-    } else if (conteoClima["Lluvioso"] >= 3) {
-        resumen = "Se prevé una semana con precipitaciones frecuentes.";
-    } else {
-        resumen = "Se espera un clima variable con nubosidad intermitente.";
-    }
+    // Lógica condicional (Requisito 4.4 del PDF)
+    let resumen = conteoClima["Soleado"] >= 4 
+        ? "Semana mayormente despejada, ideal para salir." 
+        : "Semana con clima variable, se recomienda precaución.";
 
     return { minS, maxS, promedio, resumen, conteoClima };
 }
 
-// 3. Función para mostrar detalle (Requisito 4.1, 4.2 y 4.3 del PDF)
+// Función para mostrar detalle (Requisito 4.1 y 4.2 del PDF)
 function verDetalle(idLugar) {
-    // Uso de find para buscar el objeto (Requisito 4.1)
-    const lugar = lugares.find(l => l.id === idLugar);
+    const lugar = lugares.find(l => l.id === idLugar); // Uso de find (Requisito 4.1)
     const stats = calcularStats(lugar.pronosticoSemanal);
 
     document.getElementById("home").classList.add("d-none");
@@ -70,7 +62,7 @@ function verDetalle(idLugar) {
 
     detalleSection.innerHTML = `
         <div class="container p-4">
-            <button class="btn btn-outline-secondary mb-4" onclick="location.reload()">← Volver al inicio</button>
+            <button class="btn btn-outline-secondary mb-4" onclick="location.reload()">← Volver</button>
             <div class="row g-4">
                 <div class="col-md-5">
                     <div class="card p-4 shadow-sm border-0 bg-dark text-white text-center">
@@ -81,7 +73,7 @@ function verDetalle(idLugar) {
                 </div>
                 <div class="col-md-7">
                     <div class="card p-4 shadow-sm border-0 h-100">
-                        <h4 class="mb-4 border-bottom pb-2">📊 Resumen Estadístico Semanal</h4>
+                        <h4 class="mb-4 border-bottom pb-2">Estadísticas Semanales</h4>
                         <div class="row text-center mb-4">
                             <div class="col-4">
                                 <small class="text-muted d-block">Mínima</small>
@@ -97,10 +89,10 @@ function verDetalle(idLugar) {
                             </div>
                         </div>
                         <div class="bg-light p-3 rounded mb-3">
-                            <h6 class="fw-bold">Distribución del clima:</h6>
+                            <h6>Tipos de clima encontrados:</h6>
                             <p class="mb-0">☀️ Soleados: ${stats.conteoClima["Soleado"]} | ☁️ Nublados: ${stats.conteoClima["Nublado"]} | 🌧️ Lluviosos: ${stats.conteoClima["Lluvioso"]}</p>
                         </div>
-                        <div class="alert alert-primary mb-0">${stats.resumen}</div>
+                        <div class="alert alert-info mb-0">${stats.resumen}</div>
                     </div>
                 </div>
             </div>
@@ -108,5 +100,4 @@ function verDetalle(idLugar) {
     `;
 }
 
-// Ejecutar renderizado al cargar
 renderizarHome();

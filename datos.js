@@ -69,5 +69,9 @@ const lugares = [
             { dia: "Martes", min: 9, max: 18, estado: "Lluvioso" },
             { dia: "Miércoles", min: 7, max: 15, estado: "Lluvioso" },
             { dia: "Jueves", min: 6, max: 14, estado: "Lluvioso" },
-            { dia: "Viernes", min: 8, max: 17, estado: "Nublado"
-                
+            { dia: "Viernes", min: 8, max: 17, estado: "Nublado" },
+            { dia: "Sábado", min: 10, max: 20, estado: "Soleado" },
+            { dia: "Domingo", min: 9, max: 19, estado: "Soleado" }
+        ]
+    }
+];
