@@ -1,62 +1,112 @@
+// 1. Renderizado inicial de tarjetas (Requisito 3 del PDF)
+const contenedor = document.getElementById("contenedor-lugares");
+
+function renderizarHome() {
+    contenedor.innerHTML = "";
+    lugares.forEach(lugar => {
+        contenedor.innerHTML += `
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">${lugar.nombre}</h5>
+                        <p class="card-text display-6 my-3">${lugar.tempActual}°C</p>
+                        <p class="badge bg-primary rounded-pill mb-3">${lugar.estadoActual}</p>
+                        <br>
+                        <button class="btn btn-dark w-100" onclick="verDetalle(${lugar.id})">Ver Pronóstico Semanal</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// 2. Función de cálculo de estadísticas (Requisito 4 y Rúbrica del PDF)
 function calcularStats(pronostico) {
     let minS = pronostico[0].min;
     let maxS = pronostico[0].max;
-    let suma = 0;
-    let soleados = 0;
+    let sumaTemps = 0; // Requisito técnico 164 del PDF
+    
+    // Objeto para conteo de climas (Requisito de la Rúbrica)
+    let conteoClima = { "Soleado": 0, "Nublado": 0, "Lluvioso": 0 };
 
-    for (let d of pronostico) {
-        if (d.min < minS) minS = d.min;
-        if (d.max > maxS) maxS = d.max;
-        suma += (d.min + d.max) / 2;
-        if (d.estado === "Soleado") soleados++;
+    for (let dia de pronostico) {
+        // Mínima y Máxima
+        if (dia.min < minS) minS = dia.min;
+        if (dia.max > maxS) maxS = dia.max;
+        
+        // Suma para promedio
+        sumaTemps += (dia.min + dia.max) / 2;
+        
+        // Conteo incremental
+        if (conteoClima[dia.estado] !== undefined) {
+            conteoClima[dia.estado]++;
+        }
     }
 
-    const promedio = (suma / pronostico.length).toFixed(1);
-    const resumen = soleados > 3 ? "Semana mayormente soleada." : "Semana con clima variable.";
+    const promedio = (sumaTemps / pronostico.length).toFixed(1);
+    
+    // Resumen basado en condicionales (Requisito 4.4 del PDF)
+    let resumen = "";
+    if (conteoClima["Soleado"] >= 4) {
+        resumen = "Semana con excelentes condiciones, mayormente despejada.";
+    } else if (conteoClima["Lluvioso"] >= 3) {
+        resumen = "Se prevé una semana con precipitaciones frecuentes.";
+    } else {
+        resumen = "Se espera un clima variable con nubosidad intermitente.";
+    }
 
-    return { minS, maxS, promedio, resumen };
+    return { minS, maxS, promedio, resumen, conteoClima };
 }
 
-function verDetalle(id) {
-    const lugar = lugares.find(l => l.id === id);
+// 3. Función para mostrar detalle (Requisito 4.1, 4.2 y 4.3 del PDF)
+function verDetalle(idLugar) {
+    // Uso de find para buscar el objeto (Requisito 4.1)
+    const lugar = lugares.find(l => l.id === idLugar);
     const stats = calcularStats(lugar.pronosticoSemanal);
 
     document.getElementById("home").classList.add("d-none");
-    document.getElementById("detalle").classList.remove("d-none");
-    document.getElementById("detalle-nombre").innerText = lugar.nombre;
+    const detalleSection = document.getElementById("detalle");
+    detalleSection.classList.remove("d-none");
 
-    let htmlP = "";
-    lugar.pronosticoSemanal.forEach(d => {
-        htmlP += `<li class="list-group-item d-flex justify-content-between">
-            <span>${d.dia}</span>
-            <span>${d.min}° / ${d.max}° - ${d.estado}</span>
-        </li>`;
-    });
-    document.getElementById("lista-pronostico").innerHTML = htmlP;
-
-    // Corregido: Uso de backticks (``) para el HTML dinámico
-    document.getElementById("stats-info").innerHTML = `
-        <h5>Estadísticas Semanales</h5>
-        <p>Mínima: ${stats.minS}°C</p>
-        <p>Máxima: ${stats.maxS}°C</p>
-        <p>Promedio: ${stats.promedio}°C</p>
-        <div class="alert alert-info">${stats.resumen}</div>
+    detalleSection.innerHTML = `
+        <div class="container p-4">
+            <button class="btn btn-outline-secondary mb-4" onclick="location.reload()">← Volver al inicio</button>
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="card p-4 shadow-sm border-0 bg-dark text-white text-center">
+                        <h2 class="fw-bold">${lugar.nombre}</h2>
+                        <p class="display-1 my-3">${lugar.tempActual}°C</p>
+                        <p class="h4">${lugar.estadoActual}</p>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="card p-4 shadow-sm border-0 h-100">
+                        <h4 class="mb-4 border-bottom pb-2">📊 Resumen Estadístico Semanal</h4>
+                        <div class="row text-center mb-4">
+                            <div class="col-4">
+                                <small class="text-muted d-block">Mínima</small>
+                                <span class="h5">${stats.minS}°C</span>
+                            </div>
+                            <div class="col-4 border-start border-end">
+                                <small class="text-muted d-block">Máxima</small>
+                                <span class="h5">${stats.maxS}°C</span>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Promedio</small>
+                                <span class="h5">${stats.promedio}°C</span>
+                            </div>
+                        </div>
+                        <div class="bg-light p-3 rounded mb-3">
+                            <h6 class="fw-bold">Distribución del clima:</h6>
+                            <p class="mb-0">☀️ Soleados: ${stats.conteoClima["Soleado"]} | ☁️ Nublados: ${stats.conteoClima["Nublado"]} | 🌧️ Lluviosos: ${stats.conteoClima["Lluvioso"]}</p>
+                        </div>
+                        <div class="alert alert-primary mb-0">${stats.resumen}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     `;
 }
 
-// Carga inicial de tarjetas
-document.addEventListener("DOMContentLoaded", () => {
-    const cont = document.getElementById("contenedor-lugares");
-    lugares.forEach(l => {
-        cont.innerHTML += `
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body text-center">
-                        <h5>${l.nombre}</h5>
-                        <p class="h3">${l.tempActual}°C</p>
-                        <button class="btn btn-dark w-100" onclick="verDetalle(${l.id})">Ver Detalles</button>
-                    </div>
-                </div>
-            </div>`;
-    });
-});
+// Ejecutar renderizado al cargar
+renderizarHome();
