@@ -29,9 +29,7 @@ function calcularStats(pronostico) {
         if (dia.min < minS) minS = dia.min;
         if (dia.max > maxS) maxS = dia.max;
         sumaTemps += (dia.min + dia.max) / 2;
-        if (conteoClima[dia.estado] !== undefined) {
-            conteoClima[dia.estado]++;
-        }
+        if (conteoClima[dia.estado] !== undefined) conteoClima[dia.estado]++;
     }
 
     const promedio = (sumaTemps / pronostico.length).toFixed(1);
@@ -50,7 +48,17 @@ function verDetalle(idLugar) {
     const detalleSection = document.getElementById("detalle");
     detalleSection.classList.remove("d-none");
 
-    // DISEÑO RECUPERADO CON TODAS LAS ESTADÍSTICAS
+    // Recopilar el HTML del clima día por día
+    let htmlPronostico = "";
+    lugar.pronosticoSemanal.forEach(dia => {
+        htmlPronostico += `
+            <div class="d-flex justify-content-between border-bottom py-2">
+                <span>${dia.dia}</span>
+                <span>${dia.estado}</span>
+                <span class="fw-bold">${dia.min}°C / ${dia.max}°C</span>
+            </div>`;
+    });
+
     detalleSection.innerHTML = `
         <div class="container p-4">
             <button class="btn btn-outline-secondary mb-4" onclick="location.reload()">← Volver al inicio</button>
@@ -63,32 +71,26 @@ function verDetalle(idLugar) {
                     </div>
                 </div>
                 <div class="col-md-7">
-                    <div class="card p-4 shadow-sm border-0 h-100">
+                    <div class="card p-4 shadow-sm border-0 mb-4">
                         <h4 class="mb-4 border-bottom pb-2">📊 Estadísticas Semanales</h4>
                         <div class="row text-center mb-4">
-                            <div class="col-4">
-                                <small class="text-muted d-block">Mínima</small>
-                                <span class="h5">${stats.minS}°C</span>
-                            </div>
-                            <div class="col-4 border-start border-end">
-                                <small class="text-muted d-block">Máxima</small>
-                                <span class="h5">${stats.maxS}°C</span>
-                            </div>
-                            <div class="col-4">
-                                <small class="text-muted d-block">Promedio</small>
-                                <span class="h5">${stats.promedio}°C</span>
-                            </div>
+                            <div class="col-4">Mínima<br><span class="h5">${stats.minS}°C</span></div>
+                            <div class="col-4 border-start border-end">Máxima<br><span class="h5">${stats.maxS}°C</span></div>
+                            <div class="col-4">Promedio<br><span class="h5">${stats.promedio}°C</span></div>
                         </div>
                         <div class="bg-light p-3 rounded mb-3">
-                            <h6 class="fw-bold">Distribución del clima:</h6>
                             <p class="mb-0">☀️ Soleados: ${stats.conteoClima["Soleado"]} | ☁️ Nublados: ${stats.conteoClima["Nublado"]} | 🌧️ Lluviosos: ${stats.conteoClima["Lluvioso"]}</p>
                         </div>
                         <div class="alert alert-primary mb-0">${stats.resumen}</div>
                     </div>
+                    
+                    <div class="card p-4 shadow-sm border-0">
+                        <h4 class="mb-3 border-bottom pb-2">📅 Pronóstico Diario</h4>
+                        ${htmlPronostico}
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
 }
 
 renderizarHome();
